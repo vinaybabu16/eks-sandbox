@@ -1,0 +1,3 @@
+name: eks
+runtime: go
+description: Spins up a eks cluster
