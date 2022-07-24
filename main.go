@@ -8,15 +8,7 @@ import (
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		// Create an EKS cluster with the default configuration.
-		cluster, err := eks.NewCluster(ctx, "argocd-playground", &eks.ClusterArgs{
-			SubnetIds: pulumi.StringArray{
-				pulumi.String("subnet-05fd0b3b5d5e326d0"),
-				pulumi.String("subnet-02b6f54eafb123a71"),
-			},
-			MaxSize:         pulumi.IntPtr(5),
-			MinSize:         pulumi.IntPtr(5),
-			DesiredCapacity: pulumi.IntPtr(5),
-		})
+		cluster, err := eks.NewCluster(ctx, "eks-cluster", nil)
 		if err != nil {
 			return err
 		}
