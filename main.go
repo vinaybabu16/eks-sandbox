@@ -130,8 +130,8 @@ func main() {
 			return err
 		}
 
-		ctx.Export("kubeconfig", generateKubeconfig(eksCluster.Endpoint,
-			eksCluster.CertificateAuthority.Data().Elem(), eksCluster.Name))
+		ctx.Export("kubeconfig", pulumi.ToSecret(generateKubeconfig(eksCluster.Endpoint,
+			eksCluster.CertificateAuthority.Data().Elem(), eksCluster.Name)))
 		ctx.Export("version", eksCluster.Version)
 		ctx.Export("created-at", eksCluster.CreatedAt)
 		ctx.Export("name", eksCluster.Name)
