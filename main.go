@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/pulumi/pulumi-aws/sdk/v5/go/aws/ec2"
 	"github.com/pulumi/pulumi-aws/sdk/v5/go/aws/eks"
 	"github.com/pulumi/pulumi-aws/sdk/v5/go/aws/iam"
@@ -130,8 +129,25 @@ func main() {
 			return err
 		}
 
-		ctx.Export("kubeconfig", pulumi.ToSecret(generateKubeconfig(eksCluster.Endpoint,
-			eksCluster.CertificateAuthority.Data().Elem(), eksCluster.Name)))
+		_, err = eks.NewNodeGroup(ctx, "node-group-2", &eks.NodeGroupArgs{
+			ClusterName:   eksCluster.Name,
+			NodeGroupName: pulumi.String("demo-eks-nodegroup-2"),
+			NodeRoleArn:   pulumi.StringInput(nodeGroupRole.Arn),
+			SubnetIds:     toPulumiStringArray(subnet.Ids),
+			ScalingConfig: &eks.NodeGroupScalingConfigArgs{
+				DesiredSize: pulumi.Int(3),
+				MaxSize:     pulumi.Int(3),
+				MinSize:     pulumi.Int(1),
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		kubeconfig := pulumi.ToSecret(generateKubeconfig(eksCluster.Endpoint,
+			eksCluster.CertificateAuthority.Data().Elem(), eksCluster.Name))
+
+		ctx.Export("kubeconfig", kubeconfig)
 		ctx.Export("version", eksCluster.Version)
 		ctx.Export("created-at", eksCluster.CreatedAt)
 		ctx.Export("name", eksCluster.Name)
@@ -168,7 +184,7 @@ func generateKubeconfig(clusterEndpoint pulumi.StringOutput, certData pulumi.Str
             "name": "aws",
             "user": {
                 "exec": {
-                    "apiVersion": "client.authentication.k8s.io/v1alpha1",
+                    "apiVersion": "client.authentication.k8s.io/v1beta1",
                     "command": "aws-iam-authenticator",
                     "args": [
                         "token",
